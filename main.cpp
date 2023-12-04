@@ -105,22 +105,19 @@ string getDir(int key)
 // printing the board
 void printBoard()
 {
-    cout << "____\n";
     for (int i = 0; i < 4; i++)
     {
         
         for (int j = 0; j < 4; j++)
         {
             if (board[i][j] == 0)
-                cout << " ";   
+                cout<<"| " << " "<<" |";    
             else
-                cout << board[i][j];
+                cout << "| "<<board[i][j]<<" |";
         }  
         cout << "\n";
     }
-     cout << "____\n";
 }
-
 // game over
 void gameOver(User player) 
 {
@@ -138,17 +135,30 @@ void generateNum()
         {
             for (int j = 0; j < 4; j++)
             {
-                if ((board[i][j] == 0 ) && (i != randRow) && (j != randCol) )
+                if ((board[i][j] == 0 ) && (i == randRow) && (j == randCol) )
                 {
-                    int randRow = rand() % 4;
-                    int randCol = rand() % 4;
                     board[randRow][randCol] = (rand() % 2 + 1) * 2;
-                }
-                else
-                    continue;
+                }   
             }
         }
 
+}
+
+int isFull()
+{
+    int counter = 0;
+        for (int i = 0; i < 4; i++) // row
+        {
+            for (int j = 0; j < 4; j++) // col
+            {
+                    if (board[i][j] > 0)
+                        counter++;
+            }
+        }
+        counter = counter -1;
+        if (counter == 16)
+            return 1;
+    return 0;
 }
 
 void newGame()
@@ -161,7 +171,94 @@ void newGame()
         }  
     }
     generateNum();
-    printBoard();
+    generateNum();
+    printBoard();}
+
+/* 
+//part of code for shifting
+
+ if (i > 0 &&  direction == "L")
+                    {
+                        board[i + modifierY][j + modifierX - 1] = board[i + modifierY][j + modifierX];
+                        board[i + modifierY][j + modifierX] = 0;
+                    }
+                    else if (i < 4 && direction == "R")
+                    {
+                            board[i + modifierY][j + modifierX + 1] = board[i + modifierY][j + modifierX];
+                            board[i + modifierY][j + modifierX] = 0;
+                    }
+                    else if (j > 0 &&  direction == "D")
+                    {
+                        board[i + modifierY -1][j + modifierX ] = board[i + modifierY][j + modifierX];
+                        board[i + modifierY][j + modifierX] = 0;
+                    }
+                    else if (j < 4 && direction == "U" )
+                    {
+                            board[i + modifierY + 1][j + modifierX] = board[i + modifierY][j + modifierX];
+                            board[i + modifierY][j + modifierX] = 0;
+                    }
+                }
+
+
+
+*/
+/*
+ISSUES:
+spaja rovno 2 csila ak su equal
+
+               if (board[i][j] == board[i + modifierY][j + modifierX])
+                {
+                    board[i + modifierY][j + modifierX] = board[i][j] * 2;
+                    player.updateScore(player.score, board[i + modifierY][j + modifierX]);
+                    board[i][j] = 0;
+                }
+                else
+                {
+                    board[i + modifierY][j + modifierX] = board[i][j] ;
+                    board[i][j] = 0;
+                }
+
+
+*/
+int isOccupied(int row , int col )
+{
+    if (board[row][col]  != 0)
+        return 1;
+    return 0;
+}
+
+int getEmptyElement(int modif)
+{
+    int count = 0;
+    if(modif == -1)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (i != 0 )
+            {
+            break;
+            }
+            else
+            {
+                count++;
+            }
+        }
+    }
+    else
+    {
+        for (int i = 4; i > 0 ; i--)
+        {
+            if (i != 0 )
+            {
+            break;
+            }
+            else
+            {
+                count++;
+            }
+        }
+    }
+    return count;
 }
 
 int main()
@@ -197,40 +294,54 @@ int main()
         if (direction == "none")
             break;
 
-        printBoard();
-        cout << "direction is:" << direction <<"\n";
+        cout << "direction is: " << direction <<"\n";
         int modifierX = 0;
         int modifierY = 0;
-        int counter = 0;
+        int rowC =  0;
+        int colC =  0;
 
         if (direction == "L")
-            modifierX = 1;
-        else if(direction == "R")
             modifierX = -1;
+        else if(direction == "R")
+            modifierX = 1;
         else if(direction == "U")
             modifierY = -1;
         else if(direction == "D")
             modifierY = 1;
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 4; i++) // row
         {
-            for (int j = 0; j < 4; j++)
+            for (int j = 0; j < 4; j++) // col
             {
+                if (j + modifierX < 0 || j + modifierX > 4 || i + modifierY < 0 || i + modifierY > 4)
+                    continue;
+                if (isOccupied(i + modifierY, j + modifierX) == 1)
+                {
+                    board[(i-i)+modifierY][(j-j)+ modifierX] = board[i][j] ;  
+                }
+                else
+                {
+                    rowC = getEmptyElement(modifierY);
+                    colC = getEmptyElement(modifierX);
+                    board[i + modifierY][j + modifierX] = board[i][j];
+                    board[4 - rowC][4 - colC]; 
+                    board[i][j] = 0;
+                }
+
                 if (board[i][j] == board[i + modifierY][j + modifierX])
                 {
-                    board[i][j] = board[i][j] *2 ;
-                    player.updateScore(player.score, board[i][j]);
-                    player.updateTurns(turn++);
-                    board[i + modifierY][j + modifierX] = 0;
+                    board[i + modifierY][j + modifierX] = board[i][j] * 2;
+                    player.updateScore(player.score, board[i + modifierY][j + modifierX]);
+                    board[i][j] = 0;
                 }
-                else if (board[i][j] == 0)
-                {
-                    counter++;
-                }
-            }  
+                player.updateTurns(turn++); 
+            }
         }
+        printBoard();
+        generateNum();
 
-        if (counter == 16)
+        int status = isFull();
+        if (status == 1)
         {
            gameOver(player);
            return 0; 
