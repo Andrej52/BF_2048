@@ -20,11 +20,11 @@ public:
         int userStats[3] = {this->highestNum, this->score, this->numTurns};   
         ifstream stats( this->name + ".txt");
         getline(stats, line);
-        for (int i = 0; i < line.length(); i++)
+        for (int i = 0; i < (int) line.length(); i++)
         {
             if (isdigit(line[i]))
             {
-                for (int j = 0; j < 2; j++)
+                for (int j = 0; j < (int) sizeof(userStats); j++)
                     userStats[j] = stoi(line);
             }
         }
@@ -66,7 +66,7 @@ public:
 
     void updateTurns(int turn)
     {
-        this->numTurns + turn;
+        this->numTurns =  this->numTurns + turn;
     }
 
     void showStats()
@@ -82,6 +82,7 @@ public:
 
 string getDir(int key)
 {
+
         if (key == 0 || key == 224) {
             key = _getch(); // Capture second character for arrow keys
             switch (key) {
@@ -101,6 +102,55 @@ string getDir(int key)
         }
 }
 
+// printing the board
+void printBoard()
+{
+    cout << "____\n";
+    for (int i = 0; i < 4; i++)
+    {
+        
+        for (int j = 0; j < 4; j++)
+        {
+            if (board[i][j] == 0)
+                cout << " ";   
+            else
+                cout << board[i][j];
+        }  
+        cout << "\n";
+    }
+     cout << "____\n";
+}
+
+// game over
+void gameOver(User player) 
+{
+    cout << "Game Over! \n";
+    player.saveStats();
+    return;
+}
+
+//generating random number
+void generateNum()
+{
+        int randRow = rand() % 4;
+        int randCol = rand() % 4;
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                if ((board[i][j] == 0 ) && (i != randRow) && (j != randCol) )
+                {
+                    int randRow = rand() % 4;
+                    int randCol = rand() % 4;
+                    board[randRow][randCol] = (rand() % 2 + 1) * 2;
+                }
+                else
+                    continue;
+            }
+        }
+
+}
+
 void newGame()
 {
     for (int i = 0; i < 4; i++)
@@ -110,35 +160,8 @@ void newGame()
             board[i][j] = 0;
         }  
     }
-}
-
-void printBoard()
-{
-    for (int i = 0; i < 4; i++)
-    {
-        for (int j = 0; j < 4; j++)
-        {
-            if (board[i][j] = 0)
-                cout << " ";   
-            else
-                cout << board[i][j];
-            cout << "\n";
-        }  
-    }
-}
-
-void gameOver(User player) 
-{
-    cout << "Game Over! \n";
-    player.saveStats();
-    return;
-}
-
-void generateNum()
-{
-    int randRow = rand() % 4;
-    int randCol = rand() % 4;
-    board[randRow][randCol] = (rand() % 2 + 1) * 2;
+    generateNum();
+    printBoard();
 }
 
 int main()
@@ -147,9 +170,11 @@ int main()
     string direction;
     string name;
     User  player;
+    player.initStats();
+    int turn = player.numTurns;
 
-    cout <<"New game [n]\n";
-    cout << "Show stats [s]";
+    cout <<"New game [n] \n";
+    cout << "Show stats [s] \n";
     key = _getch(); // zaznamenava stlacenie klavesy
     cout << "Enter player name\n";
     cin >> name;
@@ -162,23 +187,54 @@ int main()
     }
     else if (key == 83 || key == 115) // show stats
     {
+        player.setName(name);
         player.showStats();
     }
     
-    key = 0;
-    
     do {
         key = _getch(); // zaznamenava stlacenie klavesy
-        printBoard();
         direction = getDir(key); // navratova hodnota je  charakter R, U, L, D 
-        generateNum(); // toto presun inde
-        if (direction == "R")
+        if (direction == "none")
+            break;
+
+        printBoard();
+        cout << "direction is:" << direction <<"\n";
+        int modifierX = 0;
+        int modifierY = 0;
+        int counter = 0;
+
+        if (direction == "L")
+            modifierX = 1;
+        else if(direction == "R")
+            modifierX = -1;
+        else if(direction == "U")
+            modifierY = -1;
+        else if(direction == "D")
+            modifierY = 1;
+
+        for (int i = 0; i < 4; i++)
         {
-            
+            for (int j = 0; j < 4; j++)
+            {
+                if (board[i][j] == board[i + modifierY][j + modifierX])
+                {
+                    board[i][j] = board[i][j] *2 ;
+                    player.updateScore(player.score, board[i][j]);
+                    player.updateTurns(turn++);
+                    board[i + modifierY][j + modifierX] = 0;
+                }
+                else if (board[i][j] == 0)
+                {
+                    counter++;
+                }
+            }  
         }
 
+        if (counter == 16)
+        {
+           gameOver(player);
+           return 0; 
+        }
     } while (key != 27); // ak stlacime esc vypnutie
-    
-    
     return 0;
 }
