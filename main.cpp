@@ -102,6 +102,8 @@ string getDir(int key)
         }
 }
 
+
+
 // printing the board
 void printBoard()
 {
@@ -204,22 +206,17 @@ void newGame()
 */
 /*
 ISSUES:
-spaja rovno 2 csila ak su equal
-
-               if (board[i][j] == board[i + modifierY][j + modifierX])
+                if (isOccupied(i + modifierY, j + modifierX) == 1)
                 {
-                    board[i + modifierY][j + modifierX] = board[i][j] * 2;
-                    player.updateScore(player.score, board[i + modifierY][j + modifierX]);
-                    board[i][j] = 0;
+                    board[(i-i)+modifierY][(j-j)+ modifierX] = board[i][j] ;  
                 }
                 else
                 {
-                    board[i + modifierY][j + modifierX] = board[i][j] ;
                     board[i][j] = 0;
                 }
-
-
 */
+
+// mb not needed
 int isOccupied(int row , int col )
 {
     if (board[row][col]  != 0)
@@ -227,38 +224,59 @@ int isOccupied(int row , int col )
     return 0;
 }
 
-int getEmptyElement(int modif)
-{
-    int count = 0;
-    if(modif == -1)
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            if (i != 0 )
-            {
-            break;
-            }
-            else
-            {
-                count++;
+void shiftLeft() {
+    for (int i = 0; i < 4; ++i) {
+        int k = 0;
+        for (int j = 0; j < 4; ++j) {
+            if (board[i][j] != 0) {
+                board[i][k++] = board[i][j];
             }
         }
-    }
-    else
-    {
-        for (int i = 4; i > 0 ; i--)
-        {
-            if (i != 0 )
-            {
-            break;
-            }
-            else
-            {
-                count++;
-            }
+        while (k < 4) {
+            board[i][k++] = 0;
         }
     }
-    return count;
+}
+
+void shiftRight() {
+    for (int i = 0; i < 4; ++i) {
+        int k = 3;
+        for (int j = 3; j >= 0; --j) {
+            if (board[i][j] != 0) {
+                board[i][k--] = board[i][j];
+            }
+        }
+        while (k >= 0) {
+            board[i][k--] = 0;
+        }
+    }
+}
+
+void shiftUp() {
+    for (int j = 0; j < 4; ++j) {
+        int k = 0;
+        for (int i = 0; i < 4; ++i) {
+            if (board[i][j] != 0) {
+                board[k++][j] = board[i][j];
+            }
+        }
+        while (k < 4) {
+            board[k++][j] = 0;
+        }
+    }
+}
+void shiftDown() {
+    for (int j = 0; j < 4; ++j) {
+        int k = 3;
+        for (int i = 3; i >= 0; --i) {
+            if (board[i][j] != 0) {
+                board[k--][j] = board[i][j];
+            }
+        }
+        while (k >= 0) {
+            board[k--][j] = 0;
+        }
+    }
 }
 
 int main()
@@ -270,19 +288,19 @@ int main()
     player.initStats();
     int turn = player.numTurns;
 
-    cout <<"New game [n] \n";
-    cout << "Show stats [s] \n";
+    cout <<"New game [0] \n";
+    cout << "Show stats [1] \n";
     key = _getch(); // zaznamenava stlacenie klavesy
     cout << "Enter player name\n";
     cin >> name;
     
-    if ( key == 78 || key == 110) // new game
+    if ( key == 48) // new game
     {
         player.initStats();
         player.setName(name);
         newGame();
     }
-    else if (key == 83 || key == 115) // show stats
+    else if (key == 49) // show stats
     {
         player.setName(name);
         player.showStats();
@@ -293,12 +311,9 @@ int main()
         direction = getDir(key); // navratova hodnota je  charakter R, U, L, D 
         if (direction == "none")
             break;
-
         cout << "direction is: " << direction <<"\n";
         int modifierX = 0;
         int modifierY = 0;
-        int rowC =  0;
-        int colC =  0;
 
         if (direction == "L")
             modifierX = -1;
@@ -308,26 +323,23 @@ int main()
             modifierY = -1;
         else if(direction == "D")
             modifierY = 1;
-
+        
         for (int i = 0; i < 4; i++) // row
         {
             for (int j = 0; j < 4; j++) // col
             {
                 if (j + modifierX < 0 || j + modifierX > 4 || i + modifierY < 0 || i + modifierY > 4)
                     continue;
-                if (isOccupied(i + modifierY, j + modifierX) == 1)
-                {
-                    board[(i-i)+modifierY][(j-j)+ modifierX] = board[i][j] ;  
-                }
-                else
-                {
-                    rowC = getEmptyElement(modifierY);
-                    colC = getEmptyElement(modifierX);
-                    board[i + modifierY][j + modifierX] = board[i][j];
-                    board[4 - rowC][4 - colC]; 
-                    board[i][j] = 0;
-                }
 
+                if (direction == "L") {
+                    shiftLeft();
+                } else if (direction == "R") {
+                    shiftRight();
+                } else if (direction == "D") {
+                    shiftDown();
+                } else if (direction == "U") {
+                    shiftUp();
+                }
                 if (board[i][j] == board[i + modifierY][j + modifierX])
                 {
                     board[i + modifierY][j + modifierX] = board[i][j] * 2;
@@ -336,16 +348,16 @@ int main()
                 }
                 player.updateTurns(turn++); 
             }
+            int status = isFull();
+            if (status == 1)
+            {
+            gameOver(player);
+            return 0; 
+            }
         }
-        printBoard();
         generateNum();
-
-        int status = isFull();
-        if (status == 1)
-        {
-           gameOver(player);
-           return 0; 
-        }
+        printBoard();
     } while (key != 27); // ak stlacime esc vypnutie
+    player.saveStats();
     return 0;
 }
