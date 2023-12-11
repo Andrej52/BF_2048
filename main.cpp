@@ -7,6 +7,8 @@
 
 using namespace std;
 int board[4][4];
+string path = "CMakeProject1\out\build\x64-debug";
+string relatPath = "..\..\..\UserStats" ;
 
 class User
 {
@@ -16,24 +18,29 @@ public:
 
     void loadStats()
     {
-        string line;
-        int userStats[3] = {this->highestNum, this->score, this->numTurns};   
-        ifstream stats( this->name + ".txt");
-        getline(stats, line);
-        for (int i = 0; i < (int) line.length(); i++)
-        {
-            if (isdigit(line[i]))
-            {
-                for (int j = 0; j < (int) sizeof(userStats); j++)
-                    userStats[j] = stoi(line);
+        string line; 
+        ifstream stats(this->name + ".txt");
+
+        if (stats.is_open()) {
+                getline(stats, line);
+                getline(stats,line);
+                this->highestNum = stoi(line);
+                getline(stats, line);
+                getline(stats,line);
+                this->score = stoi(line);
+                getline(stats, line);
+                getline(stats, line);
+                this->numTurns= stoi(line);
+                 stats.close();
+            } else {
+                cout << "Unable to open file." << endl;
             }
-        }
         stats.close();
     }
 
     void saveStats()
     {
-        ofstream stats( this->name + ".txt");
+        ofstream stats(this->name + ".txt");
         stats << "Highest Number: "<< "\n";
         stats << this->highestNum <<"\n";
         stats << "score: "<< "\n";
@@ -42,6 +49,7 @@ public:
         stats << this->numTurns << "\n";
         stats.close();
     }
+    
     void setName(string name)
     {
         this->name = name;
@@ -68,16 +76,14 @@ public:
     {
         this->numTurns =  this->numTurns + turn;
     }
-
+    
     void showStats()
     {
         cout << this->name << "'s stats:" << "\n";
-        cout << "Score:" <<  this->score << "\n";
-        cout << "Number of turns" <<  this->numTurns << "\n";
-        if ( this->highestNum > 0)
-        cout << "Highest number" <<  this->highestNum << "\n";
+        cout << "Score: " <<  this->score << "\n";
+        cout << "Number of turns: " <<  this->numTurns << "\n";
+        cout << "Highest number: " <<  this->highestNum << "\n";
     }
-
 };
 
 string getDir(int key)
@@ -101,8 +107,6 @@ string getDir(int key)
            return "none";
         }
 }
-
-
 
 // printing the board
 void printBoard()
@@ -137,13 +141,10 @@ void generateNum()
         {
             for (int j = 0; j < 4; j++)
             {
-                if ((board[i][j] == 0 ) && (i == randRow) && (j == randCol) )
-                {
+                if ((board[i][j] == 0 ) && (i == randRow) && (j == randCol))
                     board[randRow][randCol] = (rand() % 2 + 1) * 2;
-                }   
             }
         }
-
 }
 
 int isFull()
@@ -157,7 +158,6 @@ int isFull()
                         counter++;
             }
         }
-        counter = counter -1;
         if (counter == 16)
             return 1;
     return 0;
@@ -174,63 +174,15 @@ void newGame()
     }
     generateNum();
     generateNum();
-    printBoard();}
-
-/* 
-//part of code for shifting
-
- if (i > 0 &&  direction == "L")
-                    {
-                        board[i + modifierY][j + modifierX - 1] = board[i + modifierY][j + modifierX];
-                        board[i + modifierY][j + modifierX] = 0;
-                    }
-                    else if (i < 4 && direction == "R")
-                    {
-                            board[i + modifierY][j + modifierX + 1] = board[i + modifierY][j + modifierX];
-                            board[i + modifierY][j + modifierX] = 0;
-                    }
-                    else if (j > 0 &&  direction == "D")
-                    {
-                        board[i + modifierY -1][j + modifierX ] = board[i + modifierY][j + modifierX];
-                        board[i + modifierY][j + modifierX] = 0;
-                    }
-                    else if (j < 4 && direction == "U" )
-                    {
-                            board[i + modifierY + 1][j + modifierX] = board[i + modifierY][j + modifierX];
-                            board[i + modifierY][j + modifierX] = 0;
-                    }
-                }
-
-
-
-*/
-/*
-ISSUES:
-                if (isOccupied(i + modifierY, j + modifierX) == 1)
-                {
-                    board[(i-i)+modifierY][(j-j)+ modifierX] = board[i][j] ;  
-                }
-                else
-                {
-                    board[i][j] = 0;
-                }
-*/
-
-// mb not needed
-int isOccupied(int row , int col )
-{
-    if (board[row][col]  != 0)
-        return 1;
-    return 0;
+    printBoard();
 }
 
 void shiftLeft() {
     for (int i = 0; i < 4; ++i) {
         int k = 0;
         for (int j = 0; j < 4; ++j) {
-            if (board[i][j] != 0) {
+            if (board[i][j] != 0) 
                 board[i][k++] = board[i][j];
-            }
         }
         while (k < 4) {
             board[i][k++] = 0;
@@ -256,9 +208,8 @@ void shiftUp() {
     for (int j = 0; j < 4; ++j) {
         int k = 0;
         for (int i = 0; i < 4; ++i) {
-            if (board[i][j] != 0) {
+            if (board[i][j] != 0) 
                 board[k++][j] = board[i][j];
-            }
         }
         while (k < 4) {
             board[k++][j] = 0;
@@ -269,9 +220,8 @@ void shiftDown() {
     for (int j = 0; j < 4; ++j) {
         int k = 3;
         for (int i = 3; i >= 0; --i) {
-            if (board[i][j] != 0) {
+            if (board[i][j] != 0) 
                 board[k--][j] = board[i][j];
-            }
         }
         while (k >= 0) {
             board[k--][j] = 0;
@@ -279,85 +229,114 @@ void shiftDown() {
     }
 }
 
+int findHighestNumber(int arr[4][4]) {
+    int highest = arr[0][0]; // Initialize with the first element
+
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            if (arr[i][j] > highest) 
+                highest = arr[i][j];
+        }
+    }
+    return highest;
+}
+
 int main()
 {
-    int key;
+    int key,exit;
+    exit = 0;
     string direction;
     string name;
     User  player;
     player.initStats();
-    int turn = player.numTurns;
-
-    cout <<"New game [0] \n";
-    cout << "Show stats [1] \n";
-    key = _getch(); // zaznamenava stlacenie klavesy
     cout << "Enter player name\n";
     cin >> name;
-    
-    if ( key == 48) // new game
+    while (exit == 0)
     {
-        player.initStats();
-        player.setName(name);
-        newGame();
-    }
-    else if (key == 49) // show stats
-    {
-        player.setName(name);
-        player.showStats();
-    }
-    
-    do {
+        cout <<"New game [0] \n";
+        cout << "Show stats [1] \n";
+        cout << "Exit [2] \n";
         key = _getch(); // zaznamenava stlacenie klavesy
-        direction = getDir(key); // navratova hodnota je  charakter R, U, L, D 
-        if (direction == "none")
-            break;
-        cout << "direction is: " << direction <<"\n";
-        int modifierX = 0;
-        int modifierY = 0;
-
-        if (direction == "L")
-            modifierX = -1;
-        else if(direction == "R")
-            modifierX = 1;
-        else if(direction == "U")
-            modifierY = -1;
-        else if(direction == "D")
-            modifierY = 1;
         
-        for (int i = 0; i < 4; i++) // row
+        if ( key == 48) // new game
         {
-            for (int j = 0; j < 4; j++) // col
-            {
-                if (j + modifierX < 0 || j + modifierX > 4 || i + modifierY < 0 || i + modifierY > 4)
-                    continue;
+            player.initStats();
+            player.setName(name);
+            newGame();
+        }
+        else if (key == 49) // show stats
+        {
+            player.setName(name);
+            player.loadStats();
+            player.showStats();
+            return 0;
+        }else if (key == 50)
+        {
+            player.setName(name);
+            player.saveStats();
+            return 0;
+        }
+        
+        do 
+        {
+            int modifierX = 0;
+            int modifierY = 0;
 
-                if (direction == "L") {
-                    shiftLeft();
-                } else if (direction == "R") {
-                    shiftRight();
-                } else if (direction == "D") {
-                    shiftDown();
-                } else if (direction == "U") {
-                    shiftUp();
-                }
-                if (board[i][j] == board[i + modifierY][j + modifierX])
+            key = _getch(); // zaznamenava stlacenie klavesy
+            direction = getDir(key); // navratova hodnota je  charakter R, U, L, D 
+            if (direction == "none")
+                break;
+
+            if (direction == "L")
+                modifierX = -1;
+            else if(direction == "R")
+                modifierX = 1;
+            else if(direction == "U")
+                modifierY = -1;
+            else if(direction == "D")
+                modifierY = 1;
+        
+            player.setHighestNum(findHighestNumber(board));
+
+            for (int i = 0; i < 4; i++) // row
+            {
+                for (int j = 0; j < 4; j++) // col
                 {
-                    board[i + modifierY][j + modifierX] = board[i][j] * 2;
-                    player.updateScore(player.score, board[i + modifierY][j + modifierX]);
-                    board[i][j] = 0;
+                    if (board[i][j] == board[i + modifierY][j + modifierX])
+                    {
+                        if (j + modifierX < 0 || j + modifierX > 4 || i + modifierY < 0 || i + modifierY > 4)
+                            continue;
+                        board[i + modifierY][j + modifierX] = board[i][j] * 2;
+                        player.updateScore(player.score, board[i + modifierY][j + modifierX]);
+                        board[i][j] = 0;
+                    }
                 }
-                player.updateTurns(turn++); 
             }
+            player.updateTurns(1); 
+
+            if (direction == "L") {
+                shiftLeft();
+            } else if (direction == "R") {
+                shiftRight();
+            } else if (direction == "D") {
+                shiftDown();
+            } else if (direction == "U") {
+                shiftUp();
+            }
+
             int status = isFull();
             if (status == 1)
             {
-            gameOver(player);
-            return 0; 
+                printBoard();
+                gameOver(player);
+                return 0; 
             }
-        }
-        generateNum();
-        printBoard();
-    } while (key != 27); // ak stlacime esc vypnutie
+            else
+                generateNum();
+            cout << endl;
+            printBoard();
+        } while (key != 27); // ak stlacime esc vypnutie
+    }
     player.saveStats();
     return 0;
 }
